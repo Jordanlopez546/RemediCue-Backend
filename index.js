@@ -6,6 +6,7 @@ const compression = require("compression");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const Agenda = require("agenda");
+const router = require("./src/router/entireRoutes");
 
 require("dotenv").config();
 
@@ -38,9 +39,17 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use("/app", router);
+
 app.get("/", (req, res) => {
   res.send("Welcome to the root of the RemediCue App!");
 });
+
+const MONGO_URL = `mongodb+srv://jordannwabuike:${process.env.REMEDICUE_DB_PW}@cluster0.jz5vxdm.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+
+mongoose.Promise = Promise;
+mongoose.connect(MONGO_URL);
+mongoose.connection.on("error", (error) => console.log(error));
 
 const PORT = process.env.PORT || 7080;
 
