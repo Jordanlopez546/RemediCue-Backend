@@ -1,11 +1,7 @@
 const mongoose = require("mongoose");
 
-const UserModel = new mongoose.Schema({
-  firstname: {
-    type: String,
-    required: true,
-  },
-  lastname: {
+const AdminModel = new mongoose.Schema({
+  username: {
     type: String,
     required: true,
   },
@@ -36,13 +32,8 @@ const UserModel = new mongoose.Schema({
     type: String,
     default: "Empty",
   },
-  phonenumber: {
-    type: String,
-    default: "+220",
-    required: true,
-  },
 });
 
-const User = mongoose.model("User", UserModel);
+const Admin = mongoose.model("Admin", AdminModel);
 
-module.exports = User;
+module.exports = Admin;
