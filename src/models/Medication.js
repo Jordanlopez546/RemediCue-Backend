@@ -19,10 +19,6 @@ const MedicationModel = new mongoose.Schema({
     enum: ["once_daily", "twice_daily", "thrice_daily"],
     required: true,
   },
-  quantity: {
-    type: String,
-    required: false,
-  },
   startDate: {
     type: Date,
     required: true,

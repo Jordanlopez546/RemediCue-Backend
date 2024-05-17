@@ -14,6 +14,13 @@ const {
   getAdminUsers,
 } = require("../controllers/authentication");
 const { CheckAuth } = require("../middleware/CheckAuth");
+const {
+  getAllMedications,
+  getMedication,
+  createMedication,
+  editMedication,
+  deleteMedication,
+} = require("../controllers/medications");
 const router = express.Router();
 
 /*
@@ -42,6 +49,24 @@ router.get("/auth/get-admin-users", CheckAuth, getAdminUsers);
   MEDICATIONS ROUTES
 
 */
+
+router.get("/medication/get-all-medications", CheckAuth, getAllMedications);
+router.get(
+  "/medication/get-medication/:medicationId",
+  CheckAuth,
+  getMedication
+);
+router.post("/medication/create-medication", CheckAuth, createMedication);
+router.patch(
+  "/medication/edit-medication/:medicationId",
+  CheckAuth,
+  editMedication
+);
+router.delete(
+  "/medication/delete-medication/:medicationId",
+  CheckAuth,
+  deleteMedication
+);
 
 /*
 
