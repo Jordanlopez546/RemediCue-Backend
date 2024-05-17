@@ -1,30 +1,21 @@
+const { encrypt_data, decrypt_data } = require("../middleware/Crypts");
 const { random, authentication } = require("../middleware/PasswordConfig");
+const {
+  generateAccessToken,
+  generateRefreshToken,
+} = require("../middleware/TokenGen");
 const Admin = require("../models/Admin");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 
-// To generate access token for user
-const generateAccessToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_KEY, {
-    expiresIn: "1h",
-    algorithm: "HS256",
-  });
-};
-
-// To generate a refresh token for the current user
-const generateRefreshToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_REFRESH_KEY, {
-    expiresIn: "1y",
-    algorithm: "HS256",
-  });
-};
+require("dotenv").config();
 
 // A function that refreshes the active access token for the user
 const refreshToken = async (req, res) => {
   try {
-    const { refreshToken } = req.body;
+    const { refresh_token } = req.body;
 
-    jwt.verify(refreshToken, process.env.JWT_REFRESH_KEY, (err, decoded) => {
+    jwt.verify(refresh_token, process.env.JWT_REFRESH_KEY, (err, decoded) => {
       if (err) return res.status(403).json({ error: "Invalid refresh token." });
 
       const accessToken = generateAccessToken(decoded.userId);
@@ -76,10 +67,11 @@ const loginUser = async (req, res) => {
 
     const userObject = {
       _id: user._id,
-      firstname: user.firstname,
-      lastname: user.lastname,
-      email: user.email,
-      phonenumber: user.phonenumber,
+      firstname: encrypt_data(user.firstname),
+      lastname: encrypt_data(user.lastname),
+      email: encrypt_data(user.email),
+      phonenumber: encrypt_data(user.phonenumber),
+      isBanned: user.isBanned,
     };
 
     return res
@@ -138,10 +130,11 @@ const createAccount = async (req, res) => {
 
     const savedUser = {
       _id: newUser._id,
-      email: newUser.email,
-      firstname: newUser.firstname,
-      lastname: newUser.lastname,
-      phonenumber: newUser.phonenumber,
+      email: encrypt_data(newUser.email),
+      firstname: encrypt_data(newUser.firstname),
+      lastname: encrypt_data(newUser.lastname),
+      phonenumber: encrypt_data(newUser.phonenumber),
+      isBanned: newUser.isBanned,
     };
 
     return res.status(201).json(savedUser).end();
@@ -191,8 +184,8 @@ const loginAdminUser = async (req, res) => {
 
     const adminUserObject = {
       _id: adminUser._id,
-      email: adminUser.email,
-      username: adminUser.username,
+      email: encrypt_data(adminUser.email),
+      username: encrypt_data(adminUser.username),
     };
 
     return res
@@ -245,8 +238,8 @@ const createAdminUser = async (req, res) => {
 
     const savedAdminUser = {
       _id: newAdminUser._id,
-      email: newAdminUser.email,
-      username: newAdminUser.username,
+      email: encrypt_data(newAdminUser.email),
+      username: encrypt_data(newAdminUser.username),
     };
 
     return res.status(201).json(savedAdminUser).end();
@@ -257,10 +250,273 @@ const createAdminUser = async (req, res) => {
   }
 };
 
+// To ban a user
+const banUser = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const userExist = await User.findById(userId);
+
+    if (!userExist) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    if (userExist.isBanned) {
+      return res.status(400).json({ message: "User is already banned." });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { isBanned: true },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(400).json({ message: "User not banned." });
+    }
+
+    const user = {
+      _id: updatedUser._id,
+      email: encrypt_data(updatedUser.email),
+      firstname: encrypt_data(updatedUser.firstname),
+      lastname: encrypt_data(updatedUser.lastname),
+      phonenumber: encrypt_data(updatedUser.phonenumber),
+      isBanned: updatedUser.isBanned,
+    };
+
+    return res
+      .status(200)
+      .json({ message: "User banned successfully.", user: user });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Error occured.", error: err.message });
+  }
+};
+
+// To delete a user
+const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const userExist = await User.findById(userId);
+
+    if (!userExist) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const deleteTheUser = await User.findByIdAndDelete(userId);
+
+    if (!deleteTheUser) {
+      return res.status(400).json({ message: "Not successful." });
+    }
+
+    return res.status(200).json({ message: "Deleted the user successfully." });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Error occured.", error: err.message });
+  }
+};
+
+// To delete an admin user
+const deleteAdminUser = async (req, res) => {
+  try {
+    const adminId = req.params.adminId;
+
+    const adminExist = await Admin.findById(adminId);
+
+    if (!adminExist) {
+      return res.status(404).json({ message: "Admin User not found" });
+    }
+
+    const deleteTheAdmin = await Admin.findByIdAndDelete(adminId);
+
+    if (!deleteTheAdmin) {
+      return res.status(400).json({ message: "Not successful." });
+    }
+
+    return res.status(200).json({ message: "Deleted the admin successfully." });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Error occured.", error: err.message });
+  }
+};
+
+// To edit user details
+const editUserDetails = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const { firstname, lastname, email, phonenumber } = req.body;
+
+    if (!firstname || !lastname || !email || !phonenumber) {
+      return res.status(400).json({
+        message: "Invalid inputs.",
+      });
+    }
+
+    const existingUser = await User.findById(userId);
+
+    if (!existingUser) {
+      return res.status(409).json({ message: "User does not exists." });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        firstname: firstname,
+        lastname: lastname,
+        email: email,
+        phonenumber: phonenumber,
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(400).json({ message: "User details not updated." });
+    }
+
+    const user = {
+      _id: updatedUser._id,
+      email: encrypt_data(updatedUser.email),
+      firstname: encrypt_data(updatedUser.firstname),
+      lastname: encrypt_data(updatedUser.lastname),
+      phonenumber: encrypt_data(updatedUser.phonenumber),
+      isBanned: updatedUser.isBanned,
+    };
+
+    return res.status(200).json({ message: "User updated.", user: user });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Error occured.", error: err.message });
+  }
+};
+
+// To edit admin user details
+const editAdminUserDetails = async (req, res) => {
+  try {
+    const adminId = req.params.adminId;
+
+    const { email, username } = req.body;
+
+    if (!email || !username) {
+      return res.status(400).json({
+        message: "Invalid inputs.",
+      });
+    }
+
+    const existingAdminUser = await Admin.findById(adminId);
+
+    if (!existingAdminUser) {
+      return res.status(409).json({ message: "Admin User does not exists." });
+    }
+
+    const updatedAdminUser = await Admin.findByIdAndUpdate(
+      adminId,
+      {
+        username: username,
+        email: email,
+      },
+      { new: true }
+    );
+
+    if (!updatedAdminUser) {
+      return res
+        .status(400)
+        .json({ message: "Admin User details not updated." });
+    }
+
+    const adminUser = {
+      _id: updatedAdminUser._id,
+      username: encrypt_data(updatedAdminUser.username),
+      email: encrypt_data(updatedAdminUser.email),
+    };
+
+    return res
+      .status(200)
+      .json({ message: "Admin User updated.", adminUser: adminUser });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Error occured.", error: err.message });
+  }
+};
+
+// Get all users
+const getUsers = async (req, res) => {
+  try {
+    const getAllUsers = await User.find();
+
+    if (getAllUsers.length <= 0) {
+      return res.status(404).json({
+        message: "No users found.",
+      });
+    }
+
+    const users = getAllUsers.map((user) => {
+      const { _id, firstname, lastname, email, phonenumber, isBanned } = user;
+
+      return {
+        _id: _id,
+        email: encrypt_data(email),
+        firstname: encrypt_data(firstname),
+        lastname: encrypt_data(lastname),
+        phonenumber: encrypt_data(phonenumber),
+        isBanned: isBanned,
+      };
+    });
+
+    return res.status(200).json(users);
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Error occured.", error: err.message });
+  }
+};
+
+// Get all admin users
+const getAdminUsers = async (req, res) => {
+  try {
+    const getAllAdminUsers = await Admin.find();
+
+    if (getAllAdminUsers.length <= 0) {
+      return res.status(404).json({
+        message: "No admin users found.",
+      });
+    }
+
+    const adminUsers = getAllAdminUsers.map((admin) => {
+      const { _id, email, username } = admin;
+
+      return {
+        _id: _id,
+        email: encrypt_data(email),
+        username: encrypt_data(username),
+      };
+    });
+
+    return res.status(200).json(adminUsers);
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Error occured.", error: err.message });
+  }
+};
+
 module.exports = {
   loginUser,
   loginAdminUser,
   refreshToken,
   createAccount,
   createAdminUser,
+  banUser,
+  editUserDetails,
+  deleteUser,
+  getAdminUsers,
+  getUsers,
+  editAdminUserDetails,
+  deleteAdminUser,
 };

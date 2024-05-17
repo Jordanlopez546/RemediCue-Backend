@@ -41,6 +41,10 @@ const UserModel = new mongoose.Schema({
     default: "+220",
     required: true,
   },
+  isBanned: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const User = mongoose.model("User", UserModel);

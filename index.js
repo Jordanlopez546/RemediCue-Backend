@@ -49,6 +49,9 @@ const MONGO_URL = `mongodb+srv://jordannwabuike:${process.env.REMEDICUE_DB_PW}@c
 
 mongoose.Promise = Promise;
 mongoose.connect(MONGO_URL);
+mongoose.connection.once("connected", () =>
+  console.log("Connected to MongoDB successfully.")
+);
 mongoose.connection.on("error", (error) => console.log(error));
 
 const PORT = process.env.PORT || 7080;
