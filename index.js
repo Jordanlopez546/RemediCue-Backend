@@ -5,8 +5,11 @@ const cookieParser = require("cookie-parser");
 const compression = require("compression");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const Agenda = require("agenda");
 const router = require("./src/router/entireRoutes");
+const Medication = require("./src/models/Medication");
+const Reminder = require("./src/models/Reminder");
+
+const agenda = require("./src/utils/agenda");
 
 require("dotenv").config();
 
@@ -49,10 +52,19 @@ const MONGO_URL = `mongodb+srv://jordannwabuike:${process.env.REMEDICUE_DB_PW}@c
 
 mongoose.Promise = Promise;
 mongoose.connect(MONGO_URL);
-mongoose.connection.once("connected", () =>
-  console.log("Connected to MongoDB successfully.")
-);
-mongoose.connection.on("error", (error) => console.log(error));
+mongoose.connection.on("error", (error) => console.log(error.message));
+
+mongoose.connection.once("connected", async () => {
+  console.log("Connected to MongoDB successfully.");
+
+  // Start agenda instance
+  await agenda.start();
+  console.log("Agenda has started running and has been initialized!!");
+
+  // Execute the reset remaining doses
+  agenda.every("0 0 * * *", "reset daily doses");
+  console.log("Agenda is running reset daily doses.");
+});
 
 const PORT = process.env.PORT || 7080;
 

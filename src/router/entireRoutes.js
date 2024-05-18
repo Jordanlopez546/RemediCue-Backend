@@ -20,6 +20,8 @@ const {
   createMedication,
   editMedication,
   deleteMedication,
+  getAllCompletedMedications,
+  completeMedication,
 } = require("../controllers/medications");
 const router = express.Router();
 
@@ -52,6 +54,11 @@ router.get("/auth/get-admin-users", CheckAuth, getAdminUsers);
 
 router.get("/medication/get-all-medications", CheckAuth, getAllMedications);
 router.get(
+  "/medication/get-all-completed-medications",
+  CheckAuth,
+  getAllCompletedMedications
+);
+router.get(
   "/medication/get-medication/:medicationId",
   CheckAuth,
   getMedication
@@ -66,6 +73,11 @@ router.delete(
   "/medication/delete-medication/:medicationId",
   CheckAuth,
   deleteMedication
+);
+router.patch(
+  "/medication/complete-medication/:medicationId",
+  CheckAuth,
+  completeMedication
 );
 
 /*

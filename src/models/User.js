@@ -1,51 +1,56 @@
 const mongoose = require("mongoose");
 
-const UserModel = new mongoose.Schema({
-  firstname: {
-    type: String,
-    required: true,
-  },
-  lastname: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    match:
-      /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/,
-  },
-  authentication: {
-    password: {
+const UserModel = new mongoose.Schema(
+  {
+    firstname: {
       type: String,
       required: true,
-      select: false,
     },
-    salt: {
+    lastname: {
       type: String,
-      select: false,
+      required: true,
     },
-    sessionToken: {
+    email: {
       type: String,
-      select: false,
+      required: true,
+      unique: true,
+      match:
+        /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/,
+    },
+    authentication: {
+      password: {
+        type: String,
+        required: true,
+        select: false,
+      },
+      salt: {
+        type: String,
+        select: false,
+      },
+      sessionToken: {
+        type: String,
+        select: false,
+      },
+    },
+    recoveryCode: {
+      required: false,
+      type: String,
+      default: "Empty",
+    },
+    phonenumber: {
+      type: String,
+      default: "+220",
+      required: true,
+    },
+    isBanned: {
+      type: Boolean,
+      default: false,
     },
   },
-  recoveryCode: {
-    required: false,
-    type: String,
-    default: "Empty",
-  },
-  phonenumber: {
-    type: String,
-    default: "+220",
-    required: true,
-  },
-  isBanned: {
-    type: Boolean,
-    default: false,
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
 const User = mongoose.model("User", UserModel);
 

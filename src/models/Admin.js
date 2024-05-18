@@ -1,38 +1,43 @@
 const mongoose = require("mongoose");
 
-const AdminModel = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    match:
-      /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/,
-  },
-  authentication: {
-    password: {
+const AdminModel = new mongoose.Schema(
+  {
+    username: {
       type: String,
       required: true,
-      select: false,
     },
-    salt: {
+    email: {
       type: String,
-      select: false,
+      required: true,
+      unique: true,
+      match:
+        /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/,
     },
-    sessionToken: {
+    authentication: {
+      password: {
+        type: String,
+        required: true,
+        select: false,
+      },
+      salt: {
+        type: String,
+        select: false,
+      },
+      sessionToken: {
+        type: String,
+        select: false,
+      },
+    },
+    recoveryCode: {
+      required: false,
       type: String,
-      select: false,
+      default: "Empty",
     },
   },
-  recoveryCode: {
-    required: false,
-    type: String,
-    default: "Empty",
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
 const Admin = mongoose.model("Admin", AdminModel);
 
