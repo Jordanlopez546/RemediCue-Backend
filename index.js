@@ -8,7 +8,6 @@ const mongoose = require("mongoose");
 const router = require("./src/router/entireRoutes");
 const Medication = require("./src/models/Medication");
 const Reminder = require("./src/models/Reminder");
-
 const agenda = require("./src/utils/agenda");
 
 require("dotenv").config();
@@ -56,14 +55,6 @@ mongoose.connection.on("error", (error) => console.log(error.message));
 
 mongoose.connection.once("connected", async () => {
   console.log("Connected to MongoDB successfully.");
-
-  // Start agenda instance
-  await agenda.start();
-  console.log("Agenda has started running and has been initialized!!");
-
-  // Execute the reset remaining doses
-  agenda.every("0 0 * * *", "reset daily doses");
-  console.log("Agenda is running reset daily doses.");
 });
 
 const PORT = process.env.PORT || 7080;

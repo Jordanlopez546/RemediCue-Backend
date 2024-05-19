@@ -1,6 +1,5 @@
 const Medication = require("../models/Medication");
-const cancelReminders = require("../utils/cancelReminders");
-const scheduleReminders = require("../utils/reminderScheduler");
+const { scheduleReminders, cancelReminders } = require("../utils/agenda");
 
 // Get all medications that is not completed or cancelled
 const getAllMedications = async (req, res) => {
