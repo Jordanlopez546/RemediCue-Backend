@@ -9,6 +9,8 @@ const router = require("./src/router/entireRoutes");
 const Medication = require("./src/models/Medication");
 const Reminder = require("./src/models/Reminder");
 const agenda = require("./src/utils/agenda");
+const multer = require('multer');
+const path = require('path');
 
 require("dotenv").config();
 
@@ -25,6 +27,8 @@ app.use(cors());
 app.use(compression());
 app.use(cookieParser());
 app.use(bodyParser.json());
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 //  Just incase it complains.
 app.use((req, res, next) => {
@@ -61,6 +65,6 @@ const PORT = process.env.PORT || 7080;
 
 const server = http.createServer(app);
 
-server.listen(PORT, () => {
+server.listen(PORT, "192.168.0.103" , () => {
   console.log("RemediCue Server Listening on port " + PORT);
 });
