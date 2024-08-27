@@ -65,6 +65,6 @@ const PORT = process.env.PORT || 7080;
 
 const server = http.createServer(app);
 
-server.listen(PORT, "192.168.0.103" , () => {
+server.listen(PORT , () => {
   console.log("RemediCue Server Listening on port " + PORT);
 });
